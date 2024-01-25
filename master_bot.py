@@ -1,5 +1,4 @@
 from telebot import TeleBot, types
-from acreditation import get_key 
 import json
 
 
@@ -65,6 +64,19 @@ def callback_message(callback):
             car_registration(message)
         case 'exit_reg':
             exit_registration(message)
+        case 'add_device':
+            add_device(message)
+        case 'add_name':
+            add_name(message) 
+        case 'add_gosnum':
+            add_gosnum(message)   
+        case 'add_brand':
+            add_brand(message)
+        case 'add_weels':
+            add_weels(message)
+        case 'add_brandWs':
+            add_brandWs(message)
+            
 
 
 # Функция для проверки, зарегистрирован ли пользователь
@@ -133,6 +145,8 @@ def sign_in(message):
     if not is_sign_in(chat_id):
         bot.send_message(chat_id,  "💼 <b>Введите</b> логин компании.", parse_mode='html')
         bot.register_next_step_handler(message,  get_login)
+    else: 
+        main_message(message)
 
 
 def car_registration(message):
@@ -142,7 +156,6 @@ def car_registration(message):
     markup.add(types.InlineKeyboardButton('🚫', callback_data='exit_reg'))
     bot.send_message(chat_id, '❗   ❗   Завершить регистрацию.  ❗  ❗', reply_markup=markup)
     
-
     markup = types.InlineKeyboardMarkup()
     btn1 = types.InlineKeyboardButton('⚙️ Устройство', callback_data='add_device')
     btn2 = types.InlineKeyboardButton('🏢 Компания', callback_data='add_name')
@@ -150,19 +163,50 @@ def car_registration(message):
     btn3 = types.InlineKeyboardButton('🚘 Государственный номер', callback_data='add_gosnum')
     btn4 = types.InlineKeyboardButton('🚗 Марка автомобиля', callback_data='add_brand')
     markup.row(btn3, btn4)
-    btn5 = types.InlineKeyboardButton('🛞 Количество колес', callback_data='add_wills')
-    btn6 = types.InlineKeyboardButton('🔄 Мврка шин', callback_data='end_brandWs')
+    btn5 = types.InlineKeyboardButton('🛞 Количество колес', callback_data='add_weels')
+    btn6 = types.InlineKeyboardButton('🔄 Марка шин', callback_data='add_brandWs')
     markup.row(btn5, btn6)
     markup.add(types.InlineKeyboardButton('✅', callback_data='end_reg'))
     bot.send_message(chat_id,  "⚙️ <b>Добавление <u>устройств</u> в базу данных</b> \n🆔 <b>Укажите</b> <u>ID</u> устройства\n🏢 <b>Введите</b> <u>наименование компании</u>\n🚗 <b>Введите</b> государственный <u>номер автомобиля</u>\n🚘 <b>Укажите</b> <u>марку автомобиля</u>\n🛞 <b>Введите</b> количество <u>колёс</u> автомобиля\n🔄 <b>Укажите</b> <u>марку шин</u>\n", parse_mode='html', reply_markup=markup)
     
 
-@bot.message_handler(commands=['end_reg'])
 def exit_registration(message):
     chat_id = message.chat.id
 
     bot.send_message(chat_id, 'Регистрация завершена.')
     main_message(message)
+
+def add_device(message):
+    chat_id = message.chat.id
+    bot.send_message(chat_id, '🆔 <b>Укажите</b> <u>ID</u> устройства', parse_mode='html')
+    bot.register_next_step_handler(message, )
+
+def add_name(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🏢 <b>Введите</b> <u>наименование компании</u>', parse_mode='html')
+
+def add_gosnum(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🚗 <b>Введите</b> государственный <u>номер автомобиля</u>', parse_mode='html')
+
+def add_brand(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🚘 <b>Укажите</b> <u>марку автомобиля</u>', parse_mode='html')
+
+def add_weels(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🛞 <b>Введите</b> количество <u>колёс</u> автомобиля', parse_mode='html')
+
+def add_brandWs(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🔄 <b>Укажите</b> <u>марку шин</u>', parse_mode='html')
+
+
 
 
 
