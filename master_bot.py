@@ -16,10 +16,10 @@ def start_message(message):
 
 
 @bot.message_handler(commands=['main_menu'])
-def main_message(message, is_sign_in: bool=False):
+def main_message(message):
     chat_id = message.chat.id
 
-    if not is_sign_in:
+    if not is_sign_in(chat_id):
         start_message(message)
     else:
         markup = types.InlineKeyboardMarkup()
@@ -49,7 +49,7 @@ def out_message(message):
 
         if is_sign_in(chat_id):
             del_user_log(chat_id)
-            bot.send_message(chat_id, 'Сессия завершина.')
+            bot.send_message(chat_id,  "🚪 <b>Сессия завершена.</b>\n", parse_mode='html')
             
 
 @bot.callback_query_handler(func=lambda callback: True)
@@ -62,7 +62,9 @@ def callback_message(callback):
         case 'sign_in':
             sign_in(message)
         case 'car_reg':
-            car_registration(message)         
+            car_registration(message)
+        case 'exit_reg':
+            exit_registration(message)
 
 
 # Функция для проверки, зарегистрирован ли пользователь
@@ -98,13 +100,15 @@ def get_passwd(message, login):
 
     passwd = message.text
     if is_acreditation(login, passwd):
-        bot.send_message(chat_id, 'Вход в систему выполнен.')
+        bot.send_message(chat_id,  "✅ <b>Вход</b> в систему <u>выполнен.</u>\n", parse_mode='html')
         add_user_log(chat_id, login)
-        main_message(message, is_sign_in=True)
+        main_message(message)
     elif passwd == '/start': # for break from menu, do you think that we should add InlineKeyboardButton?
-        start_message(message) 
+        start_message(message)
+    elif passwd == '/sign_out':
+        out_message(message)
     else:
-        bot.send_message(chat_id, 'Неверный пароль. \nПовторите попытку.')
+        bot.send_message(chat_id, "🚫 <b>Неверный</b> <u>пароль.</u> \nПовторите попытку.\n", parse_mode='html')
         bot.register_next_step_handler(message,  get_passwd, login=login)
 
 
@@ -114,12 +118,12 @@ def get_login(message):
     login = message.text
 
     if is_registered(login):
-        bot.send_message(chat_id, 'Логин есть в системе.\nВведите пароль.')
+        bot.send_message(chat_id, "🔑 <b>Логин</b> есть <u>в системе.</u> \nВведите пароль.\n", parse_mode='html')
         bot.register_next_step_handler(message,  get_passwd, login=login)
     elif login == '/start': # for break from menu, do you think that we should add InlineKeyboardButton?
         start_message(message)
     else:
-        bot.send_message(chat_id, 'Логин не зарегистрировани в системе. \nПовторите попытку.')
+        bot.send_message(chat_id, "🚫 <b>Логин</b> <u>не зарегистрирован</u> в системе. \nПовторите попытку.\n", parse_mode='html')
         bot.register_next_step_handler(message,  get_login)
 
 
@@ -127,12 +131,38 @@ def sign_in(message):
     chat_id = message.chat.id
 
     if not is_sign_in(chat_id):
-        bot.send_message(chat_id, 'Введите логин компании.')
+        bot.send_message(chat_id,  "💼 <b>Введите</b> логин компании.", parse_mode='html')
         bot.register_next_step_handler(message,  get_login)
 
 
 def car_registration(message):
-    pass
+    chat_id = message.chat.id
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton('🚫', callback_data='exit_reg'))
+    bot.send_message(chat_id, '❗   ❗   Завершить регистрацию.  ❗  ❗', reply_markup=markup)
+    
+
+    markup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton('⚙️ Устройство', callback_data='add_device')
+    btn2 = types.InlineKeyboardButton('🏢 Компания', callback_data='add_name')
+    markup.row(btn1, btn2)
+    btn3 = types.InlineKeyboardButton('🚘 Государственный номер', callback_data='add_gosnum')
+    btn4 = types.InlineKeyboardButton('🚗 Марка автомобиля', callback_data='add_brand')
+    markup.row(btn3, btn4)
+    btn5 = types.InlineKeyboardButton('🛞 Количество колес', callback_data='add_wills')
+    btn6 = types.InlineKeyboardButton('🔄 Мврка шин', callback_data='end_brandWs')
+    markup.row(btn5, btn6)
+    markup.add(types.InlineKeyboardButton('✅', callback_data='end_reg'))
+    bot.send_message(chat_id,  "⚙️ <b>Добавление <u>устройств</u> в базу данных</b> \n🆔 <b>Укажите</b> <u>ID</u> устройства\n🏢 <b>Введите</b> <u>наименование компании</u>\n🚗 <b>Введите</b> государственный <u>номер автомобиля</u>\n🚘 <b>Укажите</b> <u>марку автомобиля</u>\n🛞 <b>Введите</b> количество <u>колёс</u> автомобиля\n🔄 <b>Укажите</b> <u>марку шин</u>\n", parse_mode='html', reply_markup=markup)
+    
+
+@bot.message_handler(commands=['end_reg'])
+def exit_registration(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, 'Регистрация завершена.')
+    main_message(message)
 
 
 
