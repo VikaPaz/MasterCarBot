@@ -1,5 +1,7 @@
+
 from telebot import types
 from function_and_data import *  # Да, я знаю что так неправильно, прости
+
 
 
 @bot.message_handler(commands=['start'])
@@ -132,7 +134,7 @@ def car_registration(message, **kwags):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton('🚫', callback_data='exit_reg'))
     send_message(chat_id, '❗   ❗   Завершить регистрацию.  ❗  ❗', reply_markup=markup)
-
+    
     markup = types.InlineKeyboardMarkup()
     btn1 = types.InlineKeyboardButton('⚙️ Устройство', callback_data='add_device')
     btn2 = types.InlineKeyboardButton('🏢 Компания', callback_data='add_name')
@@ -159,6 +161,60 @@ def exit_registration(message):
 
     send_message(chat_id, 'Регистрация завершена.')
     main_message(message)
+
+def add_device(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🆔 <b>Укажите</b> <u>ID</u> устройства', parse_mode='html')
+    bot.register_next_step_handler(message, device_property)
+
+def add_name(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🏢 <b>Введите</b> <u>наименование компании</u>', parse_mode='html')
+    bot.register_next_step_handler(message, name_property)
+
+def add_gosnum(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🚗 <b>Введите</b> государственный <u>номер автомобиля</u>', parse_mode='html')
+
+def add_brand(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🚘 <b>Укажите</b> <u>марку автомобиля</u>', parse_mode='html')
+
+def add_weels(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🛞 <b>Введите</b> количество <u>колёс</u> автомобиля', parse_mode='html')
+
+def add_brandWs(message):
+    chat_id = message.chat.id
+
+    bot.send_message(chat_id, '🔄 <b>Укажите</b> <u>марку шин</u>', parse_mode='html')
+
+def device_property(message):
+    chat_id = message.chat.id
+
+    device = message.text
+    bot.send_message(chat_id, f'Девайс {device} добавлен')
+    car_registration(message, device=device)
+
+def name_property(message):
+    pass
+
+def gosnum_property(message):
+    pass
+
+def brand_property(message):
+    pass
+
+def weels_property(message):
+    pass
+
+def brandWs_property(message):
+    pass
 
 
 def add_device(message):
