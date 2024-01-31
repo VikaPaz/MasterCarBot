@@ -73,10 +73,12 @@ def callback_message(callback):
             add_gosnum(message)
         case 'add_brand':
             add_brand(message)
-        case 'add_weels':
-            add_weels(message)
+        case 'add_wheels':
+            add_wheels(message)
         case 'add_brandWs':
             add_brandWs(message)
+        case 'end_reg':
+            end_registration(message)
 
 
 def get_passwd(message, login):
@@ -131,37 +133,55 @@ def sign_in(message):
 def car_registration(message, **kwags):
     chat_id = message.chat.id
 
+    add_car_reg_log(chat_id, **kwags)
+
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton('🚫', callback_data='exit_reg'))
-    send_message(chat_id, '❗   ❗   Завершить регистрацию.  ❗  ❗', reply_markup=markup)
+    send_message(chat_id, '❗   ❗   Отменить регистрацию.  ❗  ❗', reply_markup=markup)
     
     markup = types.InlineKeyboardMarkup()
     btn1 = types.InlineKeyboardButton('⚙️ Устройство', callback_data='add_device')
     btn2 = types.InlineKeyboardButton('🏢 Компания', callback_data='add_name')
     markup.row(btn1, btn2)
-    btn3 = types.InlineKeyboardButton('🚘 Государственный номер', callback_data='add_gosnum')
+    btn3 = types.InlineKeyboardButton('🚘 Гос. номер', callback_data='add_gosnum')
     btn4 = types.InlineKeyboardButton('🚗 Марка автомобиля', callback_data='add_brand')
     markup.row(btn3, btn4)
-    btn5 = types.InlineKeyboardButton('🛞 Количество колес', callback_data='add_weels')
+    btn5 = types.InlineKeyboardButton('🛞 Количество колес', callback_data='add_wheels')
     btn6 = types.InlineKeyboardButton('🔄 Марка шин', callback_data='add_brandWs')
     markup.row(btn5, btn6)
-    markup.add(types.InlineKeyboardButton('✅', callback_data='end_reg'))
-    if not kwags:
-        send_message(chat_id,
-                     f"⚙️ <b>Добавление <u>устройств</u> в базу данных</b> \n🆔 <b>Укажите</b> <u>ID</u> устройства\n🏢 <b>Введите</b> <u>наименование компании</u>\n🚗 <b>Введите</b> государственный <u>номер автомобиля</u>\n🚘 <b>Укажите</b> <u>марку автомобиля</u>\n🛞 <b>Введите</b> количество <u>колёс</u> автомобиля\n🔄 <b>Укажите</b> <u>марку шин</u>\n",
-                     parse_mode='html', reply_markup=markup)
-    else:
-        send_message(chat_id,
-                     f"⚙️ <b>Добавление <u>устройств</u> в базу данных</b> \n🆔 <b>{kwags['device']}</b> <u>ID</u> устройства\n🏢 <b>Введите</b> <u>наименование компании</u>\n🚗 <b>Введите</b> государственный <u>номер автомобиля</u>\n🚘 <b>Укажите</b> <u>марку автомобиля</u>\n🛞 <b>Введите</b> количество <u>колёс</u> автомобиля\n🔄 <b>Укажите</b> <u>марку шин</u>\n",
-                     parse_mode='html', reply_markup=markup)
+    markup.add(types.InlineKeyboardButton('Завершить регистрацию ✅', callback_data='end_reg'))
+
+    send_message(chat_id, form_text(chat_id, kwags), parse_mode='html', reply_markup=markup)
 
 
 def exit_registration(message):
     chat_id = message.chat.id
-
-    send_message(chat_id, 'Регистрация завершена.')
+    del_car_reg_log(chat_id)
+    send_message(chat_id, 'Регистрация завершена 🚫.')
     main_message(message)
 
+def end_registration(message):
+    chat_id = message.chat.id
+
+    chat_id = str(chat_id)
+
+    if chat_id in get_car_reg_log(chat_id):
+        if 'gosnum' in get_car_reg_log(chat_id)[str(chat_id)].keys():
+            save_car_reg_log(chat_id)
+            send_message(chat_id, 'Регистрация завершена успешно ✅.')
+            main_message(message)
+        else:
+            send_message(chat_id, 'Регистрация не завершина 🚫.\n Государственный номер - обязательный пункт регистрации.')
+            main_message(message)
+    else:
+        send_message(chat_id, 'Регистрация не завершина 🚫.\n Заполните форму!')
+        car_registration(message)
+    
+
+
+
+
+#add_func
 def add_device(message):
     chat_id = message.chat.id
 
@@ -178,111 +198,84 @@ def add_gosnum(message):
     chat_id = message.chat.id
 
     bot.send_message(chat_id, '🚗 <b>Введите</b> государственный <u>номер автомобиля</u>', parse_mode='html')
+    bot.register_next_step_handler(message, gosnum_property)
 
 def add_brand(message):
     chat_id = message.chat.id
 
     bot.send_message(chat_id, '🚘 <b>Укажите</b> <u>марку автомобиля</u>', parse_mode='html')
+    bot.register_next_step_handler(message, brand_property)
 
-def add_weels(message):
+def add_wheels(message):
     chat_id = message.chat.id
 
     bot.send_message(chat_id, '🛞 <b>Введите</b> количество <u>колёс</u> автомобиля', parse_mode='html')
+    bot.register_next_step_handler(message, wheels_property)
 
 def add_brandWs(message):
     chat_id = message.chat.id
 
     bot.send_message(chat_id, '🔄 <b>Укажите</b> <u>марку шин</u>', parse_mode='html')
-
-def device_property(message):
-    chat_id = message.chat.id
-
-    device = message.text
-    bot.send_message(chat_id, f'Девайс {device} добавлен')
-    car_registration(message, device=device)
-
-def name_property(message):
-    pass
-
-def gosnum_property(message):
-    pass
-
-def brand_property(message):
-    pass
-
-def weels_property(message):
-    pass
-
-def brandWs_property(message):
-    pass
+    bot.register_next_step_handler(message, brandWs_property)
 
 
-def add_device(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🆔 <b>Укажите</b> <u>ID</u> устройства', parse_mode='html')
-    bot.register_next_step_handler(message, device_property)
-
-
-def add_name(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🏢 <b>Введите</b> <u>наименование компании</u>', parse_mode='html')
-    bot.register_next_step_handler(message, name_property)
-
-
-def add_gosnum(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🚗 <b>Введите</b> государственный <u>номер автомобиля</u>', parse_mode='html')
-
-
-def add_brand(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🚘 <b>Укажите</b> <u>марку автомобиля</u>', parse_mode='html')
-
-
-def add_weels(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🛞 <b>Введите</b> количество <u>колёс</u> автомобиля', parse_mode='html')
-
-
-def add_brandWs(message):
-    chat_id = message.chat.id
-
-    send_message(chat_id, '🔄 <b>Укажите</b> <u>марку шин</u>', parse_mode='html')
-
-
+#property
 def device_property(message):
     chat_id = message.chat.id
 
     add_message(message)  # Добавление сообщения, которое ввёл пользователь
 
-    device = message.text
-    send_message(chat_id, f'Девайс {device} добавлен')
-    car_registration(message, device=device)
-
+    text = message.text
+    send_message(chat_id, f'Девайс {text} добавлен')
+    car_registration(message, device=text)
 
 def name_property(message):
-    pass
+    chat_id = message.chat.id
 
+    add_message(message)  # Добавление сообщения, которое ввёл пользователь
+
+    text = message.text
+    send_message(chat_id, f'Крания {text} добавлена')
+    car_registration(message, name=text)
 
 def gosnum_property(message):
-    pass
+    chat_id = message.chat.id
+
+    add_message(message)  # Добавление сообщения, которое ввёл пользователь
+
+    text = message.text
+    send_message(chat_id, f'Государственный номер {text} добавлен')
+    car_registration(message, gosnum=text)
 
 
 def brand_property(message):
-    pass
+    chat_id = message.chat.id
+
+    add_message(message)  # Добавление сообщения, которое ввёл пользователь
+
+    text = message.text
+    send_message(chat_id, f'Марка колес {text} добавлена')
+    car_registration(message, brand=text)
 
 
-def weels_property(message):
-    pass
+def wheels_property(message):
+    chat_id = message.chat.id
+
+    add_message(message)  # Добавление сообщения, которое ввёл пользователь
+
+    text = message.text
+    send_message(chat_id, f'Кол-во колес {text} добавлено')
+    car_registration(message, wheels=text)
 
 
 def brandWs_property(message):
-    pass
+    chat_id = message.chat.id
+
+    add_message(message)  # Добавление сообщения, которое ввёл пользователь
+
+    text = message.text
+    send_message(chat_id, f'Брент колес {text} добавлен')
+    car_registration(message, brandWs=text)
 
 
 bot.infinity_polling()

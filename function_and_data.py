@@ -57,7 +57,6 @@ def del_user_log(chat_id):
 
 # Функция для удаления сообщений
 def del_message(chat_id):
-    print(message_id[chat_id])
     for i in message_id[chat_id]:
         try:
             bot.delete_message(chat_id, i)
@@ -77,3 +76,84 @@ def add_message(message):
 def send_message(chat_id, message, **kwargs):
     m = bot.send_message(chat_id, message, **kwargs)
     add_message(m)
+
+def get_car_reg_log(chat_id):
+    with open('car_reg_log.json', 'r') as file:
+            return json.load(file)
+
+def add_car_reg_log(chat_id, **kwags):
+    if kwags:
+        registered_users = get_car_reg_log(chat_id)
+            
+        if str(chat_id) not in dict(registered_users).keys():
+            registered_users[str(chat_id)] = kwags
+        else:
+            registered_users[str(chat_id)] = registered_users[str(chat_id)] | kwags
+
+        with open('car_reg_log.json', 'w') as file:
+            json.dump(registered_users, file)
+
+def del_car_reg_log(chat_id):
+    with open('car_reg_log.json', 'r') as file:
+            reg_logs = json.load(file)
+
+    chat_id = str(chat_id)
+
+    if chat_id in reg_logs:
+        del reg_logs[chat_id]
+
+    with open('car_reg_log.json', 'w') as file:
+        json.dump(reg_logs, file)
+
+
+def save_car_reg_log(chat_id):
+    with open('cars.json', 'r') as file:
+        cars = json.load(file)
+
+    car_reg_logs = get_car_reg_log(chat_id)[str(chat_id)]
+    gosnum = car_reg_logs.pop('gosnum')
+
+
+    if gosnum not in dict(cars).keys():
+        cars[gosnum] = car_reg_logs
+    else:
+        cars[gosnum] = cars[gosnum] | car_reg_logs
+
+    with open('cars.json', 'w') as file:
+        json.dump(cars, file)
+
+    del_car_reg_log(chat_id)
+
+
+def form_text(chat_id, kwags):
+    main_text = f"⚙️ <b>Добавление <u>устройств</u> в базу данных</b> \n"
+    device_text = f"🆔<b>Укажите</b> <u>ID</u> устройства\n"
+    name_text = f"🏢<b>Введите</b> <u>наименование компании</u>\n"
+    gosnum_text = f"🚘<b>Введите</b> государственный <u>номер автомобиля</u>\n"
+    brand_text = f"🚗 <b>Укажите</b> <u>марку автомобиля</u>\n"
+    wheels_text = f"🛞 <b>Введите</b> количество <u>колёс</u> автомобиля\n"
+    brandWs_text = f"🔄 <b>Укажите</b> <u>марку шин</u>\n"
+
+    chat_id = str(chat_id)
+    kwags = get_car_reg_log(chat_id)
+
+    if chat_id in kwags:
+
+        kwags = get_car_reg_log(chat_id)[chat_id]
+
+        for key in get_car_reg_log(chat_id)[chat_id].keys():
+            match key: 
+                case 'device':
+                    device_text = f"🆔 <b>{kwags['device']}</b> <u>ID</u> устройства\n"
+                case 'name':
+                    name_text = f"🏢 <b>{kwags['name']}</b> <u>наименование компании</u>\n"
+                case 'gosnum':
+                    gosnum_text = f"🚘 <b>{kwags['gosnum']}</b> государственный <u>номер автомобиля</u>\n"
+                case 'brand':
+                    brand_text = f"🚗 <b>{kwags['brand']}</b> <u>марку автомобиля</u>\n"
+                case 'wheels': 
+                    wheels_text = f"🛞 <b>{kwags['wheels']}</b> количество <u>колёс</u> автомобиля\n"
+                case 'brandWs':
+                    brandWs_text = f"🔄 <b>{kwags['brandWs']}</b> <u>марку шин</u>\n"
+
+    return main_text + device_text + name_text + gosnum_text + brand_text + wheels_text + brandWs_text
