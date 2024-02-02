@@ -8,6 +8,7 @@ from function_and_data import *  # Да, я знаю что так неправ�
 def start_message(message):
     chat_id = message.chat.id
 
+    deleter(message)
     add_message(message)  # Добавление сообщения, которое ввёл пользователь
 
     markup = types.InlineKeyboardMarkup()
@@ -19,6 +20,7 @@ def start_message(message):
 def main_message(message):
     chat_id = message.chat.id
 
+    deleter(message)
     add_message(message)  # Добавление сообщения, которое ввёл пользователь
 
     if not is_sign_in(chat_id):
@@ -33,6 +35,7 @@ def main_message(message):
 def out_message(message):
     chat_id = message.chat.id
 
+    # deleter(message)
     add_message(message)  # Добавление сообщения, которое ввёл пользователь
 
     if is_sign_in(chat_id):
@@ -56,7 +59,9 @@ def callback_message(callback):
     call_funk = callback.data
     message = callback.message
 
-    # add_message(message)  # Добавление сообщения, которое ввёл пользователь
+    deleter(message)
+
+    add_message(message) # Добавление сообщения, которое ввёл пользователь
 
     match call_funk:
         case 'sign_in':
@@ -105,6 +110,7 @@ def get_login(message):
     chat_id = message.chat.id
     login = message.text
 
+    deleter(message)
     add_message(message)  # Добавление сообщения, которое ввёл пользователь
 
     if is_registered(login):
@@ -157,6 +163,7 @@ def car_registration(message, **kwags):
 def exit_registration(message):
     chat_id = message.chat.id
     del_car_reg_log(chat_id)
+    deleter_message(chat_id, message, -10)
     send_message(chat_id, 'Регистрация завершена 🚫.')
     main_message(message)
 
@@ -172,13 +179,11 @@ def end_registration(message):
             main_message(message)
         else:
             send_message(chat_id, 'Регистрация не завершина 🚫.\n Государственный номер - обязательный пункт регистрации.')
-            main_message(message)
+            car_registration(message)
     else:
         send_message(chat_id, 'Регистрация не завершина 🚫.\n Заполните форму!')
         car_registration(message)
     
-
-
 
 
 #add_func
@@ -276,6 +281,12 @@ def brandWs_property(message):
     text = message.text
     send_message(chat_id, f'Брент колес {text} добавлен')
     car_registration(message, brandWs=text)
+
+
+@bot.message_handler(func=lambda message: message)
+def deleter(message):
+    chat_id = message.chat.id
+    deleter_message(chat_id, message, 10)
 
 
 bot.infinity_polling()

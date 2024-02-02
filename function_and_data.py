@@ -1,6 +1,7 @@
 # Тут я решил оставить все функции и переменную, которые не уникальны
 
 from telebot import TeleBot
+from telegram.ext import Updater, CommandHandler
 import json
 
 TOKEN = '6971909537:AAGbRyjyE2WfLqLpBxZobDuLCo8iSjM21BY'
@@ -157,3 +158,19 @@ def form_text(chat_id, kwags):
                     brandWs_text = f"🔄 <b>{kwags['brandWs']}</b> <u>марку шин</u>\n"
 
     return main_text + device_text + name_text + gosnum_text + brand_text + wheels_text + brandWs_text
+
+#this is "tomuch"
+def deleter_message(chat_id, message, count_del=1):
+    message_id = message.id
+    if count_del < 0:
+        del_list = range(0, count_del, -1)
+    else:
+        del_list = range(count_del)
+
+    for i in del_list:
+        try:
+            bot.delete_message(chat_id, message_id-i)
+        except Exception as error:
+            continue
+    
+
